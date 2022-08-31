@@ -15,6 +15,9 @@
  */
 package com.example.cupcake
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -135,13 +138,14 @@ fun CupcakeApp(modifier: Modifier = Modifier, viewModel: OrderViewModel = viewMo
                 )
             }
             composable(route = CupcakeScreen.Summary.name) {
+                val context = LocalContext.current as Activity
                 OrderSummaryScreen(
                     orderUiState = uiState,
                     onCancelButtonClicked = {
                         cancelOrderAndNavigateToStart(viewModel, navController)
                     },
                     onSendButtonClicked = { subject, summary ->
-                        // TODO
+                        shareOrder(context, subject, summary)
                     }
                 )
             }
@@ -157,3 +161,18 @@ private fun cancelOrderAndNavigateToStart(
     navController.popBackStack(CupcakeScreen.Start.name, inclusive = false)
 }
 
+private fun shareOrder(context: Context, subject: String, summary: String) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, summary)
+    }
+    if (context.packageManager.resolveActivity(intent, 0) != null) {
+        context.startActivity(
+            Intent.createChooser(
+                intent,
+                context.getString(R.string.new_cupcake_order)
+            )
+        )
+    }
+}
